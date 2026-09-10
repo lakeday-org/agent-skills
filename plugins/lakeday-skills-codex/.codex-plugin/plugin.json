@@ -1,0 +1,47 @@
+{
+  "name": "lakeday-skills",
+  "version": "0.1.0",
+  "description": "Lakeday skills for coding agents: connect, explore, query, ingest, build Workers and dashboards, and capture every session's decisions and outcomes into the agentic data lake.",
+  "author": {
+    "name": "Lakeday",
+    "url": "https://lakeday.ai"
+  },
+  "homepage": "https://github.com/lakeday-org/agent-skills",
+  "repository": "https://github.com/lakeday-org/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "lakeday",
+    "lance",
+    "lakehouse",
+    "datafusion",
+    "sql",
+    "pipelines",
+    "workers",
+    "dashboards",
+    "knowledge",
+    "memory",
+    "mcp",
+    "hooks"
+  ],
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": "./mcp/lakeday.mcp.json",
+  "interface": {
+    "displayName": "Lakeday Skills",
+    "shortDescription": "Build the agentic data lake: ingest, query, decide, remember.",
+    "longDescription": "A packaged Lakeday skill catalog for terminal and MCP workflows: connect to a deployment, explore and query Lance tables with DataFusion SQL, ingest foreign data through streams and pipelines, publish JSX2UI dashboards, and capture every session's decisions, outcomes, and provenance into Lakeday Entities and Sessions through ALWAYS-mode hooks.",
+    "developerName": "Lakeday",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://lakeday.ai",
+    "defaultPrompt": [
+      "Use Lakeday Skills to investigate why checkout failures jumped; the events are in checkout-events.jsonl in our S3 bucket.",
+      "Use Lakeday Skills to explore my deployment and recall what we decided about the payments service.",
+      "Use Lakeday Skills to build a dashboard comparing this release with the baseline."
+    ],
+    "brandColor": "#1c6ee8"
+  }
+}

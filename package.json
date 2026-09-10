@@ -1,0 +1,23 @@
+{
+  "name": "@lakeday/agent-skills",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lakeday skills, hooks, and MCP configuration for Claude Code, Codex, and Cursor.",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "bin": { "lakeday-hook": "./hooks/lakeday-hook.mjs" },
+  "scripts": {
+    "build": "node scripts/build-plugins.mjs",
+    "validate": "node scripts/validate.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "npm run validate && npm test",
+    "install-hooks": "node scripts/install-hooks.mjs"
+  },
+  "dependencies": {
+    "@lakeday-org/worker-js": "^0.1.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

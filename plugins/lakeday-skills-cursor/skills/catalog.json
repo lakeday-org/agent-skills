@@ -1,0 +1,198 @@
+{
+  "lakeday-connect": {
+    "name": "lakeday-connect",
+    "description": "Connect Claude Code, Codex, or Cursor to a Lakeday deployment through the MCP server with OAuth, pick a tenant, and enable the knowledge-capture hooks with the same sign-in.",
+    "layer": "utility",
+    "depends_on": [],
+    "references": [],
+    "source_docs": [
+      "https://docs.lakeday.ai/docs/concepts/mcp",
+      "https://docs.lakeday.ai/docs/concepts/authorization"
+    ],
+    "needs_live_discovery": true
+  },
+  "lakeday-explore": {
+    "name": "lakeday-explore",
+    "description": "Discover what a Lakeday deployment already holds — Workers, pipelines, collections, Lance tables, dashboards, and the lk_knowledge graph — before building anything.",
+    "layer": "utility",
+    "depends_on": [
+      "lakeday-connect"
+    ],
+    "references": [],
+    "source_docs": [
+      "https://docs.lakeday.ai/docs/built-ins/overview",
+      "https://docs.lakeday.ai/docs/built-ins/query"
+    ],
+    "needs_live_discovery": true
+  },
+  "lakeday-query": {
+    "name": "lakeday-query",
+    "description": "Run read-only DataFusion SQL against Lakeday's managed Lance tables and the lk_knowledge projection with query_sql, including snapshot comparisons and parameterized queries.",
+    "layer": "utility",
+    "depends_on": [
+      "lakeday-connect"
+    ],
+    "references": [
+      "references/DATAFUSION_SQL.md"
+    ],
+    "source_docs": [
+      "https://docs.lakeday.ai/docs/built-ins/query",
+      "https://docs.lakeday.ai/docs/built-ins/entities-sessions"
+    ],
+    "needs_live_discovery": true
+  },
+  "lakeday-knowledge": {
+    "name": "lakeday-knowledge",
+    "description": "The Lakeday knowledge model — Entities, Facts, Relationships, Sessions, Decisions, Outcomes, and Datasets — with naming conventions and the ALWAYS capture contract the hooks enforce.",
+    "layer": "utility",
+    "depends_on": [],
+    "references": [],
+    "source_docs": [
+      "https://docs.lakeday.ai/docs/built-ins/entities-sessions",
+      "https://tardigrade.sh/docs/why",
+      "https://www.agno.com/articles/learning-machines"
+    ],
+    "needs_live_discovery": false
+  },
+  "lakeday-web": {
+    "name": "lakeday-web",
+    "description": "Use Lakeday's sandboxed web_search and browser_tool to gather external evidence (release notes, incident reports, docs) and cite it as url references in knowledge records.",
+    "layer": "utility",
+    "depends_on": [
+      "lakeday-connect"
+    ],
+    "references": [],
+    "source_docs": [
+      "https://docs.lakeday.ai/docs/built-ins/search"
+    ],
+    "needs_live_discovery": true
+  },
+  "lakeday-ingest": {
+    "name": "lakeday-ingest",
+    "description": "Bring a foreign dataset (S3, HTTP, files, webhooks) into Lakeday as a stream, pipeline, and Lance table with provenance back to the source, then run it with run_pipeline.",
+    "layer": "workflow",
+    "depends_on": [
+      "lakeday-connect",
+      "lakeday-access",
+      "lakeday-query"
+    ],
+    "references": [
+      "references/TRANSFORM_AUTHORING.md"
+    ],
+    "source_docs": [
+      "https://docs.lakeday.ai/docs/built-ins/streams-pipelines",
+      "https://docs.lakeday.ai/docs/recipes/webhook-to-lakehouse",
+      "https://docs.lakeday.ai/docs/recipes/deduplicate-events"
+    ],
+    "needs_live_discovery": true
+  },
+  "lakeday-workers": {
+    "name": "lakeday-workers",
+    "description": "Author, deploy, invoke, and inspect Lakeday Workers and Durable Objects with explicit bindings through deploy_worker, invoke_worker, and get_worker.",
+    "layer": "workflow",
+    "depends_on": [
+      "lakeday-connect"
+    ],
+    "references": [],
+    "source_docs": [
+      "https://docs.lakeday.ai/docs/get-started/quickstart",
+      "https://docs.lakeday.ai/docs/built-ins/durable-objects",
+      "https://docs.lakeday.ai/docs/concepts/platform"
+    ],
+    "needs_live_discovery": true
+  },
+  "lakeday-access": {
+    "name": "lakeday-access",
+    "description": "Manage Lakeday data collections, source assignment, collection grants, and table row policies so Workers, dashboards, and people can read the right tables — the \"grant table\" workflow.",
+    "layer": "workflow",
+    "depends_on": [
+      "lakeday-connect",
+      "lakeday-explore"
+    ],
+    "references": [],
+    "source_docs": [
+      "https://docs.lakeday.ai/docs/concepts/authorization"
+    ],
+    "needs_live_discovery": true
+  },
+  "lakeday-dashboard": {
+    "name": "lakeday-dashboard",
+    "description": "Author, validate, publish, inspect, and render JSX2UI dashboards over Lakeday tables with ui_catalog, validate_ui, create_dashboard, inspect_dashboard, and render_dashboard.",
+    "layer": "workflow",
+    "depends_on": [
+      "lakeday-connect",
+      "lakeday-query",
+      "lakeday-access"
+    ],
+    "references": [],
+    "source_docs": [
+      "https://docs.lakeday.ai/docs/built-ins/jsx2ui",
+      "https://docs.lakeday.ai/docs/concepts/mcp"
+    ],
+    "needs_live_discovery": true
+  },
+  "lakeday-record": {
+    "name": "lakeday-record",
+    "description": "Record what the agent learned and decided — session_decide, session_outcome, entity_fact, entity_link — with the evidence and idempotency keys Lakeday expects; the AGENTIC half of ALWAYS-mode learning.",
+    "layer": "workflow",
+    "depends_on": [
+      "lakeday-knowledge"
+    ],
+    "references": [],
+    "source_docs": [
+      "https://docs.lakeday.ai/docs/built-ins/entities-sessions",
+      "https://docs.agno.com/learning/overview"
+    ],
+    "needs_live_discovery": false
+  },
+  "lakeday-recall": {
+    "name": "lakeday-recall",
+    "description": "Recall prior sessions, decisions, outcomes, and facts about a subject from Lakeday before acting, and load evidence references into working context without the raw data.",
+    "layer": "workflow",
+    "depends_on": [
+      "lakeday-knowledge",
+      "lakeday-query"
+    ],
+    "references": [],
+    "source_docs": [
+      "https://docs.lakeday.ai/docs/built-ins/entities-sessions",
+      "https://tardigrade.sh/docs/why"
+    ],
+    "needs_live_discovery": true
+  },
+  "lakeday-investigate": {
+    "name": "lakeday-investigate",
+    "description": "End-to-end incident or regression investigation on Lakeday — ingest the evidence, compare against a baseline, recall prior decisions, publish a dashboard, record the decision, and verify the outcome.",
+    "layer": "use-case",
+    "depends_on": [
+      "lakeday-ingest",
+      "lakeday-query",
+      "lakeday-recall",
+      "lakeday-dashboard",
+      "lakeday-access",
+      "lakeday-record"
+    ],
+    "references": [],
+    "source_docs": [
+      "https://lakeday.ai",
+      "https://docs.lakeday.ai/docs/recipes/overview"
+    ],
+    "needs_live_discovery": true
+  },
+  "lakeday-knowledge-dashboard": {
+    "name": "lakeday-knowledge-dashboard",
+    "description": "Publish a human-facing view of an investigation — evidence, decision, outcome — by joining lk_knowledge with the source tables in a JSX2UI dashboard.",
+    "layer": "use-case",
+    "depends_on": [
+      "lakeday-dashboard",
+      "lakeday-recall",
+      "lakeday-access"
+    ],
+    "references": [],
+    "source_docs": [
+      "https://docs.lakeday.ai/docs/built-ins/jsx2ui",
+      "https://docs.lakeday.ai/docs/recipes/ai-history-dashboard"
+    ],
+    "needs_live_discovery": true
+  }
+}

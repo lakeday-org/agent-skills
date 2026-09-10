@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [{ "command": "node \"${LAKEDAY_SKILLS_ROOT}/hooks/lakeday-hook.mjs\"", "timeout": 20 }],
+    "beforeSubmitPrompt": [{ "command": "node \"${LAKEDAY_SKILLS_ROOT}/hooks/lakeday-hook.mjs\"", "timeout": 20 }],
+    "afterMCPExecution": [{ "command": "node \"${LAKEDAY_SKILLS_ROOT}/hooks/lakeday-hook.mjs\"", "timeout": 20 }],
+    "afterShellExecution": [{ "command": "node \"${LAKEDAY_SKILLS_ROOT}/hooks/lakeday-hook.mjs\"", "timeout": 20 }],
+    "afterFileEdit": [{ "command": "node \"${LAKEDAY_SKILLS_ROOT}/hooks/lakeday-hook.mjs\"", "timeout": 20 }],
+    "postToolUseFailure": [{ "command": "node \"${LAKEDAY_SKILLS_ROOT}/hooks/lakeday-hook.mjs\"", "timeout": 20 }],
+    "stop": [{ "command": "node \"${LAKEDAY_SKILLS_ROOT}/hooks/lakeday-hook.mjs\"", "timeout": 30, "loop_limit": 2 }],
+    "preCompact": [{ "command": "node \"${LAKEDAY_SKILLS_ROOT}/hooks/lakeday-hook.mjs\"", "timeout": 20 }],
+    "sessionEnd": [{ "command": "node \"${LAKEDAY_SKILLS_ROOT}/hooks/lakeday-hook.mjs\"", "timeout": 3 }]
+  }
+}
