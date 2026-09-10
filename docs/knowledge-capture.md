@@ -85,11 +85,10 @@ and outcomes.
 }
 ```
 
-Credentials come from `LAKEDAY_API_KEY` / `LAKEDAY_API_TOKEN` (automation only), else the
-installed CLI's `lk auth token --json` command after `lk login`. The CLI owns refreshes and
-credential storage; hooks never read or rewrite that store. The tenant is auto-detected from
-`/v1/me` when exactly one deployment is visible. Environment: `LAKEDAY_TENANT_ID`,
-`LAKEDAY_API_BASE_URL`, `LAKEDAY_CLI_PATH`, `LAKEDAY_HOME`, `LAKEDAY_HOOK_DEBUG=1`,
+The hooks hold no credential and make no network calls. The model opens and re-projects the
+session through `session_open` / `session_project` under the MCP client's OAuth sign-in, and the
+hook only injects that instruction, keeps a local ledger, and blocks the stop. Environment:
+`LAKEDAY_TENANT_ID`, `LAKEDAY_HOOKS=0`, `LAKEDAY_HOME`, `LAKEDAY_HOOK_DEBUG=1`,
 `LAKEDAY_HOOK_HARNESS=claude|codex|cursor` (override detection).
 
 ## One implementation, three surfaces

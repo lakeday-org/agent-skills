@@ -75,7 +75,7 @@ if (scope === "project") {
   const cfg = path.join(cwd, ".lakeday", "agent-skills.json");
   if (!fs.existsSync(cfg)) {
     writeJson(cfg, { tenant_id: process.env.LAKEDAY_TENANT_ID ?? "", project: path.basename(cwd).toLowerCase().replace(/[^a-z0-9_.-]+/g, "-") });
-    console.log(`wrote ${cfg}; set tenant_id (or export LAKEDAY_TENANT_ID), then run lk login or set LAKEDAY_API_KEY`);
+    console.log(`wrote ${cfg}; set tenant_id only if more than one deployment is visible`);
   }
 }
-console.log("hooks are inert until lk login (or a service credential) and a tenant are configured; set LAKEDAY_HOOK_DEBUG=1 to log to ~/.lakeday/agent-skills/hooks.log");
+console.log("the hooks hold no credential: the model talks to Lakeday through the MCP server with the client's OAuth sign-in; set LAKEDAY_HOOK_DEBUG=1 to log to ~/.lakeday/agent-skills/hooks.log");

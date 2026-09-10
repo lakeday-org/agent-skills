@@ -43,13 +43,6 @@ Why did checkout failures jump? The events are in checkout-events.jsonl in our S
 
 ## Install
 
-Install the CLI once so the skills and hooks can use the same account:
-
-```sh
-npm install -g lakeday
-lk login
-```
-
 The primary command is `lk`. For a one-off invocation, `npx lakeday <command>`
 is also supported.
 
@@ -81,41 +74,28 @@ node "$HOME/.lakeday/agent-skills/scripts/install-hooks.mjs" \
 The clone contains the hook installer and the generated self-contained plugin
 bundle; the `--cwd` flag targets the project where Cursor should run the hooks.
 
-Then sign in once with `lk login`. The MCP server authenticates through Lakeday's AuthKit OAuth
-(the client runs the flow; DCR/CIMD-capable clients can omit a client id), and the hooks use the
-same identity through `lk auth token --json`:
-
-```sh
-lk login                              # browser sign-in; the CLI owns credential storage
-node "$HOME/.lakeday/agent-skills/plugins/lakeday-skills-cursor/hooks/lakeday-hook.mjs" status
-```
-
-Use a preregistered MCP client id only when its redirect URI matches the harness. The staging
-public client documented in `docs/install-matrix.md` is registered only for the CLI's
-`http://localhost:3080/` callback, and staging MCP login has not been verified.
-
-No API key is needed for a person. Automation exports `LAKEDAY_API_KEY` instead and uses
-`mcp/lakeday.api-key.mcp.json`. See `docs/install-matrix.md` for per-harness details.
+Then sign in once, in the client: the MCP server authenticates through Lakeday's AuthKit OAuth
+(dynamic client registration, PKCE). The hooks hold no credential at all; they instruct the model
+to open and re-project the session through the MCP tools, so every Lakeday call runs under that
+sign-in. Automation uses `mcp/lakeday.api-key.mcp.json` with a service key instead. See
+`docs/install-matrix.md` for per-harness details.
 
 ## How the knowledge capture works
 
 The hooks implement Agno's **ALWAYS** learning mode on top of the coding agent's lifecycle and
 inject context Tardigrade-style, projected from immutable Lakeday events:
 
-1. **SessionStart / prompt** — create or resume the Lakeday Session and project entity; inject a
-   `<lakeday-knowledge>` block with the goal, decisions (measured or not), unresolved errors, prior
-   decisions about the project, facts, datasets, and recent activity.
-2. **Tool calls** — consequential Lakeday calls, errors, code edits, and git mutations become
-   session events with dataset evidence. `deploy_pipeline`, `run_pipeline`, `create_dashboard`,
-   and `set_table_policy` record entities and lineage links server-side; the hook adds the same
-   for `stream_load` and anything the server did not cover.
-3. **Stop** — if the turn changed something and the model recorded no decision, the stop is blocked
-   once with the exact `session_decide` call. The assistant's turn and a fresh session context are
-   then written.
-4. **PreCompact** — the context is snapshotted before the harness compacts.
+1. **SessionStart / prompt** — the hook injects one instruction: call `session_open` (first
+   turn) or `session_project` (later turns). The MCP server creates or resumes the personal
+   Session and project entity and returns the `<lakeday-knowledge>` block: goal, decisions
+   (measured or not), unresolved errors, prior decisions about the project, facts, datasets.
+2. **Tool calls** — the hook keeps a local ledger. `deploy_pipeline`, `run_pipeline`,
+   `create_dashboard`, and `set_table_policy` record entities and lineage links server-side.
+3. **Stop** — if the turn changed something and the model recorded no decision through
+   `session_decide`, the stop is blocked once with the exact call to make.
+4. **PreCompact** — nothing to save; the next prompt re-projects from durable events.
 
-Design and configuration: `docs/knowledge-capture.md`. The hooks are fail-open: without a key and
-tenant they do nothing. The projection and policy code is the Lakeday SDK's
+Design and configuration: `docs/knowledge-capture.md`. The hooks are fail-open and hold no credential. The projection and policy code is the Lakeday SDK's
 `@lakeday-org/worker-js/learning` module, the same one behind `defineAgent({ learning: "always" })`
 and the MCP server's `session_project` tool; the hook imports the published package directly.
 `npm run build` bundles that dependency into each distributed plugin hook, so a plugin install

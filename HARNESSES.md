@@ -44,8 +44,7 @@ How each coding agent finds skills, hooks, and MCP servers from this repository.
 
 ## Other agents
 
-`npx -y skills add lakeday-org/agent-skills` reads `skills/` directly. Install the CLI with
-`npm install -g lakeday` so the hooks can call `lk auth token --json`. `mcp/lakeday.mcp.json` is
+`npx -y skills add lakeday-org/agent-skills` reads `skills/` directly. `mcp/lakeday.mcp.json` is
 the generic MCP declaration. Hooks require one of the three harnesses above.
 
 ## Detection order in `hooks/lakeday-hook.mjs`
