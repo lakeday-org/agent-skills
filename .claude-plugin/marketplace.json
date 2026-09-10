@@ -1,0 +1,40 @@
+{
+  "name": "lakeday-skills",
+  "owner": {
+    "name": "Lakeday"
+  },
+  "metadata": {
+    "description": "Lakeday skills for coding agents: connect, explore, query, ingest, build Workers and dashboards, and capture every session's decisions and outcomes into the agentic data lake.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "lakeday-skills",
+      "source": "./plugins/lakeday-skills-claude",
+      "description": "Lakeday skills for coding agents: connect, explore, query, ingest, build Workers and dashboards, and capture every session's decisions and outcomes into the agentic data lake.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Lakeday"
+      },
+      "homepage": "https://lakeday.ai",
+      "repository": "https://github.com/lakeday-org/agent-skills",
+      "license": "MIT",
+      "category": "Productivity",
+      "tags": [
+        "lakeday",
+        "lance",
+        "lakehouse",
+        "datafusion",
+        "sql",
+        "pipelines",
+        "workers",
+        "durable-objects",
+        "dashboards",
+        "knowledge",
+        "memory",
+        "mcp",
+        "hooks"
+      ]
+    }
+  ]
+}

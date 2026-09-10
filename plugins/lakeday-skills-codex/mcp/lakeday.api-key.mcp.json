@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "lakeday": {
+      "type": "http",
+      "url": "https://api.lakeday.ai/mcp",
+      "headers": { "Authorization": "Bearer ${LAKEDAY_API_KEY}" }
+    }
+  }
+}
