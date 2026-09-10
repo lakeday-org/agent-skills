@@ -1,7 +1,7 @@
 {
   "lakeday-connect": {
     "name": "lakeday-connect",
-    "description": "Connect Claude Code, Codex, or Cursor to a Lakeday deployment through the MCP server with OAuth, pick a tenant, and enable the knowledge-capture hooks with the same sign-in.",
+    "description": "Connect Claude Code, Codex, or Cursor to a Lakeday deployment through the MCP server with OAuth, pick a tenant, and enable the knowledge-capture hooks, which run under that same sign-in.",
     "layer": "utility",
     "depends_on": [],
     "references": [],

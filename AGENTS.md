@@ -28,8 +28,8 @@ structured like `motherduckdb/agent-skills`: canonical `skills/` with a `catalog
   regenerated `plugins/`. The build bundles the hook and its SDK dependency into each plugin,
   so installed plugins do not need a post-install dependency fetch.
 - `npm run check` (validate + tests) must pass before a PR.
-- Hooks must stay fail-open and must never read or write CLI credentials. They obtain the active
-  token by invoking `lk auth token --json`; service identities may use `LAKEDAY_API_KEY`.
+- Hooks must stay fail-open and must hold no credential and make no network calls. Every Lakeday
+  read or write is an MCP tool call the model makes under the client's OAuth sign-in.
 - Follow `docs/skill-authoring.md` for new skills; add a catalog entry and a test if the skill
   changes hook behavior.
 - Keep prose plain: no marketing copy in skills, exact identifiers, numbered workflows.
