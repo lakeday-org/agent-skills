@@ -74,6 +74,8 @@ test("the injected instruction opens the session through MCP, then re-projects i
   const fresh = openInstruction(config, { sessionKeyName: "claude-checkout-abc" }, { prompt: "Why did checkout failures jump?" });
   assert.match(fresh, /session_open with tenant_id "acme", key "claude-checkout-abc", project "checkout", goal "Why did checkout failures jump\?"/);
   assert.match(fresh, /session_decide/);
+  // The decision id must not be confused with the session id.
+  assert.match(fresh, /data\.id names the decision itself in short kebab-case/);
   assert.match(fresh, /exposes no session_open, say so once and continue without it/);
   assert.doesNotMatch(fresh, /session_project/);
   const opened = openInstruction(config, { sessionKeyName: "claude-checkout-abc", lakedaySessionId: "os:x:claude-checkout-abc", projectEntity: "os:x:repo-checkout" });
