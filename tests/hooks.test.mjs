@@ -15,11 +15,16 @@ function envFor(home, extra = {}) {
   return { LAKEDAY_HOME: home, ...extra };
 }
 
-test("lakedayToolName maps harness tool names", () => {
+test("lakedayToolName maps harness tool names whatever the server is called", () => {
   assert.equal(lakedayToolName("mcp__lakeday__query_sql"), "query_sql");
   assert.equal(lakedayToolName("mcp__lakeday__session_open"), "session_open");
+  // A server named lakeday-staging or lakeday_prod is still Lakeday.
+  assert.equal(lakedayToolName("mcp__lakeday-staging__session_decide"), "session_decide");
+  assert.equal(lakedayToolName("mcp__lakeday_prod__query_sql"), "query_sql");
   assert.equal(lakedayToolName("mcp__other__query_sql"), null);
+  assert.equal(lakedayToolName("mcp__notlakeday__query_sql"), null);
   assert.equal(lakedayToolName("session_decide", "lakeday"), "session_decide");
+  assert.equal(lakedayToolName("session_decide", "lakeday-staging"), "session_decide");
   assert.equal(lakedayToolName("session_decide", "other"), null);
   assert.equal(lakedayToolName("Bash"), null);
 });
@@ -28,6 +33,10 @@ test("normalize handles Claude, Codex, and Cursor payloads", () => {
   const claude = normalize({ hook_event_name: "PostToolUse", session_id: "s1", cwd: "/tmp/p", tool_name: "mcp__lakeday__deploy_pipeline", tool_input: { name: "x" }, tool_response: { ok: true } }, {});
   assert.equal(claude.harness, "claude");
   assert.equal(claude.tool.lakedayTool, "deploy_pipeline");
+  const staging = normalize({ hook_event_name: "PostToolUse", session_id: "s3", cwd: "/tmp/p", tool_name: "mcp__lakeday-staging__session_decide", tool_input: {}, tool_response: { type: "decision.recorded" } }, {});
+  assert.equal(staging.tool.lakedayTool, "session_decide");
+  // Canonical spelling, so anything re-deriving from the name agrees.
+  assert.equal(staging.tool.name, "mcp__lakeday__session_decide");
   const codex = normalize({ hook_event_name: "Stop", session_id: "s2", cwd: "/tmp/p", turn_id: "t1", stop_hook_active: true }, {});
   assert.equal(codex.harness, "codex");
   assert.equal(codex.stopActive, true);

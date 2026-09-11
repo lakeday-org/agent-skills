@@ -12,8 +12,28 @@
 //     raw
 //   }
 
-import { lakedayToolName, toolError } from "@lakeday-org/worker-js/learning";
-export { lakedayToolName };
+import { lakedayToolName as lakedayTool, toolError } from "@lakeday-org/worker-js/learning";
+
+// A user names the MCP server whatever they like: lakeday, lakeday-staging,
+// lakeday-prod. The shared module recognises the canonical name, so the
+// harness-specific spelling is normalised here, which is the adapter's job.
+const LAKEDAY_SERVER = /^lakeday(?:[-_].+)?$/;
+
+export function lakedayToolName(name, serverName) {
+  if (serverName !== undefined && serverName !== null) {
+    return LAKEDAY_SERVER.test(serverName) ? lakedayTool(name, "lakeday") : null;
+  }
+  const mcp = /^mcp__([^_]+(?:_[^_]+)*)__(.+)$/.exec(name ?? "");
+  if (mcp) return LAKEDAY_SERVER.test(mcp[1]) ? lakedayTool(`mcp__lakeday__${mcp[2]}`) : null;
+  return lakedayTool(name);
+}
+
+/** The canonical spelling, so anything that re-derives the tool from its name
+ * (the shared module included) reaches the same answer the adapter did. */
+function toolIdentity(name, serverName) {
+  const lakedayName = lakedayToolName(name, serverName);
+  return { name: lakedayName ? `mcp__lakeday__${lakedayName}` : (name ?? ""), lakedayTool: lakedayName };
+}
 
 export function detectHarness(payload, env = process.env) {
   if (env.LAKEDAY_HOOK_HARNESS) return env.LAKEDAY_HOOK_HARNESS;
@@ -62,8 +82,7 @@ function normalizeClaudeLike(p, harness) {
   if (event === "PostToolUse") {
     const output = p.tool_response ?? p.tool_output ?? p.result ?? null;
     base.tool = {
-      name: p.tool_name ?? "",
-      lakedayTool: lakedayToolName(p.tool_name),
+      ...toolIdentity(p.tool_name),
       input: p.tool_input ?? {},
       output: parseMaybeJson(output),
       error: toolError(output),
@@ -90,7 +109,7 @@ function normalizeCursor(p) {
     switch (p.hook_event_name) {
       case "afterMCPExecution": {
         const output = parseMaybeJson(p.result_json);
-        base.tool = { name: p.tool_name ?? "", serverName: p.mcp_server_name, lakedayTool: lakedayToolName(p.tool_name, p.mcp_server_name), input: p.tool_input ?? {}, output, error: toolError(output) };
+        base.tool = { ...toolIdentity(p.tool_name, p.mcp_server_name), input: p.tool_input ?? {}, output, error: toolError(output) };
         break;
       }
       case "afterShellExecution":
@@ -100,10 +119,10 @@ function normalizeCursor(p) {
         base.tool = { name: "Edit", lakedayTool: null, input: { file_path: p.file_path, edits: p.edits ?? [] }, output: null, error: null };
         break;
       case "postToolUseFailure":
-        base.tool = { name: p.tool_name ?? "", lakedayTool: lakedayToolName(p.tool_name), input: p.tool_input ?? {}, output: null, error: p.error_message ?? "tool failed" };
+        base.tool = { ...toolIdentity(p.tool_name), input: p.tool_input ?? {}, output: null, error: p.error_message ?? "tool failed" };
         break;
       default:
-        base.tool = { name: p.tool_name ?? "", lakedayTool: lakedayToolName(p.tool_name), input: p.tool_input ?? {}, output: parseMaybeJson(p.tool_output), error: toolError(p.tool_output) };
+        base.tool = { ...toolIdentity(p.tool_name), input: p.tool_input ?? {}, output: parseMaybeJson(p.tool_output), error: toolError(p.tool_output) };
     }
   }
   return base;
