@@ -54,7 +54,7 @@ function resolveConfig({ cwd, env = process.env } = {}) {
   return config;
 }
 
-// ../../../../private/tmp/lakeday-tenantless/sdk/packages/worker-js/src/learning.js
+// ../lakeday/sdk/packages/worker-js/src/learning.js
 var LEARNING_MODES = Object.freeze(["always", "agentic", "off"]);
 var MAX_LINE = 240;
 function clip(text, max = MAX_LINE) {
