@@ -2,10 +2,7 @@
   "mcpServers": {
     "lakeday": {
       "type": "http",
-      "url": "https://api-staging.lakeday.ai/mcp",
-      "oauth": {
-        "clientId": "client_01M2471MQYGTGQN2B4GVVJJFV3"
-      }
+      "url": "https://api-staging.lakeday.ai/mcp"
     }
   }
 }

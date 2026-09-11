@@ -46,20 +46,18 @@ The MCP client does it. Claude Code, Codex, and Cursor discover the AuthKit auth
 from `/.well-known/oauth-protected-resource/mcp` and run authorization code with PKCE in the
 browser. AuthKit follows RFC 8252, so any loopback port works and no callback-port flag is needed.
 
-A client that registers itself (dynamic registration, or Claude Code's Client ID Metadata Document)
-is refused the Lakeday scopes: WorkOS will not attach permissions to a self-registered application,
-so its sign-in fails with `invalid_scope` as soon as the server advertises `collections:*`. The
-environment's preregistered public client is therefore required, and the configs in `mcp/` carry
-its id so no one types a flag:
+The client registers itself and requests identity scopes only. Lakeday authorizes on the
+signed-in person's live WorkOS role and collection grants rather than on scopes in the token, so no
+client id, scope, or callback port is configured anywhere:
 
 | File | Use |
 | --- | --- |
-| `mcp/lakeday.staging.mcp.json` | Staging, with `oauth.clientId` set |
-| `mcp/lakeday.mcp.json` | Production. Production has no public client yet; create a first-party OAuth application there and add its id the same way |
+| `mcp/lakeday.mcp.json` | Production |
+| `mcp/lakeday.staging.mcp.json` | Staging |
 | `mcp/lakeday.api-key.mcp.json` | Service identities, using `LAKEDAY_API_KEY` |
 
-Adding a server by hand instead: `claude mcp add --transport http lakeday <url> --client-id <id>`,
-or `codex mcp add lakeday --url <url> --oauth-client-id <id>`.
+Adding a server by hand instead: `claude mcp add --transport http lakeday <url>`, or
+`codex mcp add lakeday --url <url>` followed by `codex mcp login lakeday`.
 
 Automation that cannot complete an OAuth flow uses `mcp/lakeday.api-key.mcp.json` with a
 user-owned service key. Organization-only keys cannot own Sessions or Entities.
