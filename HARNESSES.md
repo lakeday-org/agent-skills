@@ -7,8 +7,8 @@ How each coding agent finds skills, hooks, and MCP servers from this repository.
 - Marketplace: `.claude-plugin/marketplace.json` → plugin source `plugins/lakeday-skills-claude`.
 - Plugin manifest: `plugins/lakeday-skills-claude/.claude-plugin/plugin.json` with `skills`,
   `hooks` (`hooks/hooks.json`), and `mcpServers` (`.mcp.json`, OAuth: the client discovers the
-  AuthKit server from `/.well-known/oauth-protected-resource/mcp`; pass `--client-id` from that
-  document when adding manually).
+  AuthKit server from `/.well-known/oauth-protected-resource/mcp` and registers itself; no client
+  id is configured).
 - Hook commands use `${CLAUDE_PLUGIN_ROOT}`; events: `SessionStart`, `UserPromptSubmit`,
   `PostToolUse` (matcher `mcp__lakeday__.*|Bash|Edit|Write|MultiEdit|NotebookEdit|apply_patch`),
   `Stop`, `PreCompact`, `SessionEnd`.
