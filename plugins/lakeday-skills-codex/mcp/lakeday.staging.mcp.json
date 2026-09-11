@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "lakeday": {
+      "type": "http",
+      "url": "https://api-staging.lakeday.ai/mcp"
+    }
+  }
+}

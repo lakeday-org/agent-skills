@@ -43,11 +43,21 @@ Skills for a manual install: copy `skills/*` into `~/.claude/skills/`, `~/.codex
 ## Sign-in
 
 The MCP client does it. Claude Code, Codex, and Cursor discover the AuthKit authorization server
-from `/.well-known/oauth-protected-resource/mcp`, register a public client dynamically, and run
-authorization code with PKCE in the browser. When a client must use a preregistered public client
-(dynamically registered clients currently receive only identity scopes), pass its id with
-`--client-id` (Claude Code) or `--oauth-client-id` (Codex). AuthKit follows RFC 8252, so any
-loopback port is accepted and no callback-port flag is needed.
+from `/.well-known/oauth-protected-resource/mcp` and run authorization code with PKCE in the
+browser. AuthKit follows RFC 8252, so any loopback port works and no callback-port flag is needed.
+
+The client registers itself and requests identity scopes only. Lakeday authorizes on the
+signed-in person's live WorkOS role and collection grants rather than on scopes in the token, so no
+client id, scope, or callback port is configured anywhere:
+
+| File | Use |
+| --- | --- |
+| `mcp/lakeday.mcp.json` | Production |
+| `mcp/lakeday.staging.mcp.json` | Staging |
+| `mcp/lakeday.api-key.mcp.json` | Service identities, using `LAKEDAY_API_KEY` |
+
+Adding a server by hand instead: `claude mcp add --transport http lakeday <url>`, or
+`codex mcp add lakeday --url <url>` followed by `codex mcp login lakeday`.
 
 Automation that cannot complete an OAuth flow uses `mcp/lakeday.api-key.mcp.json` with a
 user-owned service key. Organization-only keys cannot own Sessions or Entities.

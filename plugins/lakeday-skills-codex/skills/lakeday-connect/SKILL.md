@@ -17,8 +17,8 @@ license: MIT
 
 ### Default Posture
 
-- People sign in with OAuth in the client: authorization code with PKCE against AuthKit, with
-  dynamic client registration when the client supports it. Nothing long-lived is pasted anywhere.
+- People sign in with OAuth in the client: authorization code with PKCE against AuthKit, with the
+  client registering itself. Nothing long-lived is pasted anywhere, and no client id is configured.
 - API keys are for service identities only: CI, scheduled Workers, automation. Never ask a person
   for a key when the OAuth path is available, and never write a key into a file the agent edits.
 - One identity serves everything. The hooks hold no credential and make no network calls: they
@@ -35,10 +35,9 @@ license: MIT
    - Codex: `codex mcp add lakeday --url https://api.lakeday.ai/mcp`, then `codex mcp login lakeday`.
    - Cursor: merge `mcp/lakeday.mcp.json` into `.cursor/mcp.json`; Cursor prompts for the OAuth
      sign-in when the server answers 401.
-   If the environment requires a preregistered public client (because dynamically registered
-   clients receive only identity scopes), pass its id: `--client-id` for Claude Code,
-   `--oauth-client-id` for Codex. AuthKit follows RFC 8252, so any loopback port is accepted and
-   no `--callback-port` is needed.
+   No client id, scope, or callback port is needed. Lakeday authorizes on the signed-in person's
+   live role and collection grants, so a token carrying only `openid profile email offline_access`
+   has their full authority, and any MCP client connects without configuration.
 2. Verify: `whoami` (a user identity, not an organization key) and `list_deployments` → `tenant_id`.
 3. Install the hooks (no sign-in of their own):
    ```sh
@@ -50,9 +49,8 @@ license: MIT
    confirm knowledge access. `session_open` provisions your personal collection and binds its
    sources on first use, so no collection setup is needed by hand.
 
-When a client lets you choose OAuth scopes, request AuthKit's `openid profile email offline_access`
-plus the Lakeday permissions the workflow needs (`resources:*`, `data:*`, `private:*`,
-`collections:*`). `openid` alone does not authorize data calls.
+Scopes are identity only: `openid profile email offline_access`. Lakeday does not read permission
+scopes from the token, so there is nothing extra to request.
 
 ### Service identities
 
@@ -66,9 +64,8 @@ cannot own Sessions or Entities.
 - `401` from the MCP server: the client has no token yet; run the client's authenticate step.
 - `invalid_client` during sign-in: the client id is not registered with this AuthKit environment.
   Let the client register dynamically, or use the environment's published `oauth_client_id`.
-- `403` on data or knowledge tools right after a successful sign-in: the token carries only OIDC
-  scopes. The client must request the Lakeday scopes above; a dynamically registered client may
-  not be allowed them, in which case an operator registers a public client for the environment.
+- `403` on data or knowledge tools right after a successful sign-in: your WorkOS role or
+  collection grant is missing, not a token scope. Check `whoami` and `list_collections`.
 - `403` on `entity_*` / `session_*`: missing Worker scope or collection access. See `lakeday-access`.
 - `403 OS requires a user identity`: the credential is organization-owned. Sign in as a person.
 - `409` on a write: an idempotency key was reused with a different body. Generate a new key.
