@@ -102,6 +102,9 @@ copyHookConfig("hooks.json", claudeDir);
 await bundleHook(claudeDir);
 const mcp = JSON.parse(fs.readFileSync(path.join(root, "mcp", "lakeday.mcp.json"), "utf8"));
 writeJson(path.join(claudeDir, ".mcp.json"), mcp);
+// The staging and service-identity variants ship alongside: production has no
+// public OAuth client yet, so a staging user swaps the declaration.
+copyDir(path.join(root, "mcp"), path.join(claudeDir, "mcp"));
 writeJson(path.join(claudeDir, ".claude-plugin", "plugin.json"), {
   name: "lakeday-skills",
   version,

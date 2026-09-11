@@ -35,10 +35,11 @@ license: MIT
    - Codex: `codex mcp add lakeday --url https://api.lakeday.ai/mcp`, then `codex mcp login lakeday`.
    - Cursor: merge `mcp/lakeday.mcp.json` into `.cursor/mcp.json`; Cursor prompts for the OAuth
      sign-in when the server answers 401.
-   If the environment requires a preregistered public client (because dynamically registered
-   clients receive only identity scopes), pass its id: `--client-id` for Claude Code,
-   `--oauth-client-id` for Codex. AuthKit follows RFC 8252, so any loopback port is accepted and
-   no `--callback-port` is needed.
+   The configs in `mcp/` already carry the client id where one is required, so nothing needs to
+   be passed by hand. Adding a server manually against staging needs
+   `--client-id client_01M2471MQYGTGQN2B4GVVJJFV3` (Claude Code) or `--oauth-client-id` (Codex),
+   because AuthKit refuses Lakeday scopes to self-registering clients. AuthKit follows RFC 8252, so
+   any loopback port works and no `--callback-port` is needed.
 2. Verify: `whoami` (a user identity, not an organization key) and `list_deployments` → `tenant_id`.
 3. Install the hooks (no sign-in of their own):
    ```sh
