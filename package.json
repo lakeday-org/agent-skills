@@ -19,7 +19,7 @@
     "install-hooks": "node scripts/install-hooks.mjs"
   },
   "dependencies": {
-    "@lakeday-org/worker-js": "^0.1.1"
+    "@lakeday-org/worker-js": "file:vendor/lakeday-org-worker-js-0.1.3.tgz"
   },
   "devDependencies": {
     "esbuild": "^0.28.2"

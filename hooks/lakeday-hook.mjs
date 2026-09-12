@@ -20,7 +20,7 @@ import path from "node:path";
 import { resolveConfig } from "./lib/config.mjs";
 import { normalize, encodeResponse } from "./lib/adapters.mjs";
 import {
-  classifyTool, clip, normalizeToolCall, sanitizeId, stopVerdict, toolEventData,
+  classifyTool, clip, knowledgeOperation, normalizeToolCall, sanitizeId, stopVerdict, toolEventData,
 } from "@lakeday-org/worker-js/learning";
 import { sessionKey, loadState, saveState, emptyTurn } from "./lib/state.mjs";
 
@@ -88,9 +88,12 @@ function handle(normalized, { config, state, log }) {
       if (kind === "other") return null;
       state.turn.tools.push({ name: tool.name, lakedayTool: tool.lakedayTool, kind, ok: !tool.error, label: clip(toolEventData(tool, normalized.harness).label, 120) });
       if (kind === "recording" && !tool.error) {
-        if (tool.lakedayTool === "session_decide") { state.turn.decisions++; state.openDecisions = (state.openDecisions ?? 0) + 1; }
-        if (tool.lakedayTool === "session_outcome") { state.turn.outcomes++; state.openDecisions = Math.max(0, (state.openDecisions ?? 0) - 1); }
-        if (tool.lakedayTool === "entity_fact") state.turn.facts++;
+        // entity_* and session_* are two namespaces into one object class, so
+        // count the operation rather than one spelling of it.
+        const operation = knowledgeOperation(tool.lakedayTool);
+        if (operation === "decide") { state.turn.decisions++; state.openDecisions = (state.openDecisions ?? 0) + 1; }
+        if (operation === "outcome") { state.turn.outcomes++; state.openDecisions = Math.max(0, (state.openDecisions ?? 0) - 1); }
+        if (operation === "fact") state.turn.facts++;
       }
       if (kind === "measurement" && (state.openDecisions ?? 0) > 0) state.turn.measuredAfterDecision = true;
       return null;
@@ -110,7 +113,7 @@ function handle(normalized, { config, state, log }) {
         log("blocking stop: decision required");
         const reason = state.lakedaySessionId
           ? verdict.reason
-          : `${verdict.reason}\nNo Lakeday session is open yet: call session_open with key "${state.sessionKeyName}" and project "${config.project}" first, then session_decide on the returned session id.`;
+          : `${verdict.reason}\nNo Lakeday session is open yet: call session_open with key "${state.sessionKeyName}" and project "${config.project}" first, then entity_decide on the project entity it returns.`;
         return { block: { reason } };
       }
       state.turn = emptyTurn();

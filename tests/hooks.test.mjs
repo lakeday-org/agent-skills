@@ -119,13 +119,17 @@ test("end to end: no network, learns the session from session_open, blocks once 
   // Next turn: decision recorded through MCP, then a measurement asks for an outcome.
   await run({ hook_event_name: "UserPromptSubmit", session_id: "abc-123", cwd, prompt: "verify" }, opts);
   await run({ hook_event_name: "PostToolUse", session_id: "abc-123", cwd, tool_name: "mcp__lakeday__deploy_worker", tool_input: { worker: "w", source: "x" }, tool_response: { ok: true } }, opts);
-  await run({ hook_event_name: "PostToolUse", session_id: "abc-123", cwd, tool_name: "mcp__lakeday__session_decide", tool_input: { id: "os:1:claude-checkout-abc123", data: { id: "deploy-w" } }, tool_response: { type: "decision.recorded" } }, opts);
+  // Recorded through the entity namespace: the same operation, so it must satisfy the same policy.
+  await run({ hook_event_name: "PostToolUse", session_id: "abc-123", cwd, tool_name: "mcp__lakeday-staging__entity_decide", tool_input: { id: "os:1:repo-checkout", data: { id: "deploy-w" } }, tool_response: { type: "decision.recorded" } }, opts);
   const stop2 = await run({ hook_event_name: "Stop", session_id: "abc-123", cwd, stop_hook_active: false }, opts);
   assert.equal(stop2.result, null);
   await run({ hook_event_name: "UserPromptSubmit", session_id: "abc-123", cwd, prompt: "measure" }, opts);
   await run({ hook_event_name: "PostToolUse", session_id: "abc-123", cwd, tool_name: "mcp__lakeday__query_sql", tool_input: { sql: "select count(*) from checkout_events" }, tool_response: { rows: [] } }, opts);
   const stop3 = await run({ hook_event_name: "Stop", session_id: "abc-123", cwd, stop_hook_active: false }, opts);
   assert.match(stop3.result.block.reason, /Call entity_outcome with id set to/);
+  // And recording it through the entity namespace clears the turn.
+  await run({ hook_event_name: "PostToolUse", session_id: "abc-123", cwd, tool_name: "mcp__lakeday-staging__entity_outcome", tool_input: { id: "os:1:repo-checkout", record_id: "deploy-w" }, tool_response: { type: "decision.outcome" } }, opts);
+  assert.equal((await run({ hook_event_name: "Stop", session_id: "abc-123", cwd, stop_hook_active: true }, opts)).result, null);
   delete globalThis.fetch;
 });
 
