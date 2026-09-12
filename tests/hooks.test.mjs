@@ -88,7 +88,7 @@ test("the injected instruction opens the session through MCP, then re-projects i
   assert.match(noTenant, /the deployment id from list_deployments/);
 });
 
-test("end to end: no network, learns the session from session_open, blocks once until session_decide", async () => {
+test("end to end: no network, learns the session from session_open, blocks once until a decision is recorded", async () => {
   const home = tempHome();
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "checkout-"));
   fs.mkdirSync(path.join(cwd, ".lakeday"));
@@ -108,7 +108,10 @@ test("end to end: no network, learns the session from session_open, blocks once 
   // Consequential work without a decision blocks the stop once, naming the session.
   await run({ hook_event_name: "PostToolUse", session_id: "abc-123", cwd, tool_name: "mcp__lakeday__deploy_pipeline", tool_input: { name: "checkout-ingest", source_stream: "a", output_stream: "b", sink_table: "checkout_events" }, tool_response: { pipeline: "checkout-ingest" } }, opts);
   const stop1 = await run({ hook_event_name: "Stop", session_id: "abc-123", cwd, stop_hook_active: false }, opts);
-  assert.match(stop1.result.block.reason, /session_decide with id="os:1:claude-checkout-abc123"/);
+  // The nudge names the MCP contract and the concrete project entity the hook learned.
+  assert.match(stop1.result.block.reason, /Call entity_decide with id set to the object/);
+  assert.match(stop1.result.block.reason, /os:1:repo-checkout/);
+  assert.match(stop1.result.block.reason, /set about to os:1:claude-checkout-abc123/);
   assert.match(stop1.result.block.reason, /deploy_pipeline checkout-ingest/);
   const stop1b = await run({ hook_event_name: "Stop", session_id: "abc-123", cwd, stop_hook_active: true }, opts);
   assert.equal(stop1b.result, null, "one nudge per turn");
@@ -122,7 +125,7 @@ test("end to end: no network, learns the session from session_open, blocks once 
   await run({ hook_event_name: "UserPromptSubmit", session_id: "abc-123", cwd, prompt: "measure" }, opts);
   await run({ hook_event_name: "PostToolUse", session_id: "abc-123", cwd, tool_name: "mcp__lakeday__query_sql", tool_input: { sql: "select count(*) from checkout_events" }, tool_response: { rows: [] } }, opts);
   const stop3 = await run({ hook_event_name: "Stop", session_id: "abc-123", cwd, stop_hook_active: false }, opts);
-  assert.match(stop3.result.block.reason, /session_outcome/);
+  assert.match(stop3.result.block.reason, /Call entity_outcome with id set to/);
   delete globalThis.fetch;
 });
 

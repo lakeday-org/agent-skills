@@ -101,6 +101,7 @@ function handle(normalized, { config, state, log }) {
         maxNudges: config.maxStopBlocksPerTurn,
         stopActive: normalized.stopActive,
         sessionId: state.lakedaySessionId ?? undefined,
+        projectEntity: state.projectEntity ?? undefined,
         openDecisions: state.openDecisions ?? 0,
         measuredAfterDecision: state.turn.measuredAfterDecision,
       });
