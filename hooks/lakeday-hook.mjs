@@ -66,7 +66,7 @@ export function openInstruction(config, state, { prompt } = {}) {
     );
   }
   lines.push(
-    "Record every consequential choice this turn (deployments, ingestion, dashboards, grants, code changes, commits) with session_decide: its id argument is the session above, and its data carries {id, subjects, choice, rationale, alternatives, evidence}. data.id names the decision itself in short kebab-case, such as restore-timeout, and is never the session id. Record measured results of earlier decisions with session_outcome, durable facts with entity_fact on the project entity. The turn cannot finish with unrecorded consequential actions.",
+    "Record every consequential choice this turn (deployments, ingestion, dashboards, grants, code changes, commits) with entity_decide on the object the choice is about, such as the project entity above: its id argument is that object, and its data carries {id, actor_id, choice, rationale, alternatives, about, evidence}. data.id names the decision itself in short kebab-case, such as restore-timeout, and is never the session id; set about to the session above so the decision points back at where it was made, and cite objects as evidence entries {object, point}. Record measured results of earlier decisions with entity_outcome on the same object, durable facts with entity_fact. The turn cannot finish with unrecorded consequential actions.",
     "</lakeday-hooks>",
   );
   return lines.join("\n");

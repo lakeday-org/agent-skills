@@ -52,7 +52,7 @@ license: MIT
    and returns `table_version` from the last sink commit. If `drained` is false, call it again.
 8. Verify: `query_sql SELECT count(*) FROM <table>` and a 5-row sample. Compare with the source
    count.
-9. Record the decision (`session_decide`) with subjects `[pipeline:<name>, dataset:<table>]` and
+9. Record the decision with `entity_decide` on `pipeline:<name>` (cite `dataset:<table>` in evidence) and
    evidence `[{kind:"url", id:<source uri>}, {kind:"dataset", id:<table>, version:<snapshot>}]`.
    The Stop hook will insist if you skip this.
 

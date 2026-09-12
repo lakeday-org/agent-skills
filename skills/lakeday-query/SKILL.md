@@ -1,6 +1,6 @@
 ---
 name: lakeday-query
-description: Run read-only DataFusion SQL against Lakeday's managed Lance tables and the lk_knowledge projection with query_sql, including snapshot comparisons and parameterized queries.
+description: Run read-only DataFusion SQL against Lakeday's managed Lance tables with query_sql, including snapshot comparisons and parameterized queries.
 license: MIT
 ---
 
@@ -50,26 +50,23 @@ GROUP BY release, timeout_ms
 ORDER BY failure_rate_pct DESC
 LIMIT 20;
 
--- Decisions and their outcomes about one entity
-SELECT d.session_id, d.decision_id, d.label AS choice, o.label AS outcome, d.timestamp
-FROM lk_knowledge d
-LEFT JOIN lk_knowledge o
-  ON o.type = 'decision.outcome' AND o.row_kind = 'event'
- AND o.session_id = d.session_id AND o.decision_id = d.decision_id
-WHERE d.type = 'decision.recorded' AND d.row_kind = 'reference'
-  AND d.target_kind = 'entity' AND d.target_id = $1
-ORDER BY d.timestamp DESC LIMIT 20;
+-- Failure rate by release, compared across two table versions
+SELECT release,
+       count(*) FILTER (WHERE failed) AS failures,
+       count(*)                       AS total
+FROM checkout_events
+GROUP BY release
+ORDER BY failures DESC
+LIMIT 20;
 ```
 
-`lk_knowledge` columns: `row_kind` (`event` | `reference`), `object_kind`, `object_id`,
-`sequence`, `type`, `timestamp`, `actor_id`, `session_id`, `decision_id`, `predicate`,
-`target_kind`, `target_id`, `target_version`, `target_session_id`, `record_id`, `label`, `detail`,
-`payload` (JSON). Assertions and retractions are both events; filter out retracted IDs to get the
-current view.
+Knowledge is not in SQL. Decisions, outcomes, facts, and links live in each object's own
+history and are read with `entity_decisions`, `entity_outcomes`, `entity_facts`, and
+`entity_links` — see `lakeday-recall`. `query_sql` reads the data those records are *about*.
 
 ### Related Skills
 
 - `lakeday-explore` to find tables first.
-- `lakeday-recall` for the standard knowledge queries.
+- `lakeday-recall` for reading decisions, facts, and links off an object.
 - `lakeday-dashboard` when the result should become a view for people.
 - `lakeday-record` for turning findings into facts, decisions, and outcomes.

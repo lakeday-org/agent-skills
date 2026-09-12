@@ -59,7 +59,7 @@ license: MIT
    evaluation for others. Filters and Refresh call `evaluate_dashboard` through the host bridge.
 9. `update_dashboard(id, document)` with a bumped `revision` for edits; invalid JSX leaves the
    deployed version unchanged.
-10. Record the decision: subjects `[dashboard:<name>, dataset:<table>]`, evidence with the table
+10. Record the decision with `entity_decide` on `dashboard:<name>`, evidence citing the table
     snapshot, and link the dashboard to the investigation session.
 
 ### Related Skills

@@ -40,7 +40,7 @@ license: MIT
    records `dataset:<table>` as an entity.
 4. `collection_grant(collection, email|membership_id, role)` → for each reader.
 5. Verify as the reader: `query_describe` with their credential, or ask them to open the dashboard.
-6. Record the decision: subjects `[dataset:<table>, dashboard:<name>]`, choice "granted
+6. Record the decision with `entity_decide` on `dataset:<table>`, choice "granted
    <role> on <collection> to <who>", rationale, evidence.
 
 ### Workflow: new source
@@ -61,7 +61,7 @@ Custom Durable Objects use `worker`/`binding`/`object` coordinates instead of `s
   the pipeline first.
 - `409` on `assign_data_source`: the source already belongs to another collection; create a new
   source name instead.
-- `409 SQL alias is already used`: pick another alias; `lk_knowledge` is reserved.
+- `409 SQL alias is already used`: pick another alias.
 
 ### Related Skills
 

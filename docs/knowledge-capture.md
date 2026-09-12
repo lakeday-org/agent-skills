@@ -53,7 +53,7 @@ the same idea to external harnesses, using the Session DO history as the event l
 - `uncertain` — tool errors not followed by a later success of the same tool
 - `recent` — the last few events
 - `facts` — active facts on the project Entity (asserted minus retracted)
-- `prior decisions` — cross-session recall from `lk_knowledge` for the project Entity
+- `prior decisions` — the project object's own `/decisions`, read newest first
 
 `renderContext()` concatenates views into a `<lakeday-knowledge>` block under a character budget
 (default 16,000), dropping trailing sections first. The block is injected as `additionalContext`

@@ -60,7 +60,7 @@ license: MIT
 5. Smoke: `invoke_worker(tenant_id, worker, path="/", method="GET")`; `get_worker` for state and triggers.
 6. Secrets go through the Worker secrets API (`PUT /v1/deployments/:id/workers/:worker/secrets`
    via `product_api` or the dashboard); scheduled data access needs `SERVICE_IDENTITY_TOKEN`.
-7. Record the deployment decision with subjects `[worker:<name>]` (the hooks create the entity when
+7. Record the deployment decision with `entity_decide` on `worker:<name>` (the hooks create the object when
    you deploy through MCP).
 
 ### Durable Objects

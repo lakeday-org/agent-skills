@@ -1,6 +1,6 @@
 ---
 name: lakeday-explore
-description: Discover what a Lakeday deployment already holds — Workers, pipelines, collections, Lance tables, dashboards, and the lk_knowledge graph — before building anything.
+description: Discover what a Lakeday deployment already holds — Workers, pipelines, collections, Lance tables, dashboards, and the object graph — before building anything.
 license: MIT
 ---
 
@@ -12,7 +12,8 @@ license: MIT
   `list_collections`, `collection_tables`, `query_describe`, and `list_dashboards`.
 - The MCP resources `lakeday://me`, `lakeday://deployments/{tenant_id}/workers`, `/endpoints`,
   and `/tables` return the same data for clients that browse before acting.
-- Knowledge (entities, sessions, decisions, outcomes) is queryable SQL in `lk_knowledge`.
+- Knowledge lives in each object's own history, not in SQL: `entity_get`, `entity_links`,
+  `entity_decisions`, `entity_facts`. Start from the project object in the injected block.
 
 ### Default Posture
 
@@ -37,20 +38,19 @@ license: MIT
 8. Report a compact inventory: data sources, tables (row estimate from `SELECT count(*)` only when
    cheap), pipelines feeding them, dashboards reading them, and knowledge that references them.
 
-### Useful SQL
+### Following lineage
 
-```sql
--- Tables referenced by evidence in decisions (dataset lineage from the knowledge side)
-SELECT target_id AS dataset, target_version, count(*) AS references
-FROM lk_knowledge
-WHERE row_kind = 'reference' AND target_kind = 'dataset'
-GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 50;
+Provenance is graph edges on the objects themselves, written server-side when you pass
+`session_id` and `project_entity` to `deploy_pipeline`, `run_pipeline`, `create_dashboard`, and
+`set_table_policy`.
 
--- Pipelines and the tables they write, from provenance links the hooks record
-SELECT object_id AS pipeline, target_id AS table_entity, session_id
-FROM lk_knowledge
-WHERE type = 'relationship.asserted' AND predicate = 'writes_to' LIMIT 100;
-```
+- `entity_links(tenant_id, id="pipeline:<name>")` → `reads_from` its source, `writes_to` its table.
+- `entity_links(tenant_id, id="dataset:<table>")` → `produced_by` the pipeline that wrote it.
+- `entity_links(tenant_id, id=<project object>)` → the pipelines and dashboards it `owns`.
+- `entity_refs(tenant_id, id=<object>, object=<other>, kind="link")` → the edge between two
+  specific things.
+
+Sample the data itself with `query_describe` and `query_sql`; see `lakeday-query`.
 
 ### Related Skills
 

@@ -13,7 +13,7 @@
   },
   "lakeday-explore": {
     "name": "lakeday-explore",
-    "description": "Discover what a Lakeday deployment already holds — Workers, pipelines, collections, Lance tables, dashboards, and the lk_knowledge graph — before building anything.",
+    "description": "Discover what a Lakeday deployment already holds — Workers, pipelines, collections, Lance tables, dashboards, and the object graph — before building anything.",
     "layer": "utility",
     "depends_on": [
       "lakeday-connect"
@@ -27,7 +27,7 @@
   },
   "lakeday-query": {
     "name": "lakeday-query",
-    "description": "Run read-only DataFusion SQL against Lakeday's managed Lance tables and the lk_knowledge projection with query_sql, including snapshot comparisons and parameterized queries.",
+    "description": "Run read-only DataFusion SQL against Lakeday's managed Lance tables with query_sql, including snapshot comparisons and parameterized queries.",
     "layer": "utility",
     "depends_on": [
       "lakeday-connect"
@@ -43,7 +43,7 @@
   },
   "lakeday-knowledge": {
     "name": "lakeday-knowledge",
-    "description": "The Lakeday knowledge model — Entities, Facts, Relationships, Sessions, Decisions, Outcomes, and Datasets — with naming conventions and the ALWAYS capture contract the hooks enforce.",
+    "description": "The Lakeday object model — one event-sourced class carrying a kind tag, with facts, links, decisions, outcomes, and logs — plus naming conventions and the ALWAYS capture contract the hooks enforce.",
     "layer": "utility",
     "depends_on": [],
     "references": [],
@@ -133,7 +133,7 @@
   },
   "lakeday-record": {
     "name": "lakeday-record",
-    "description": "Record what the agent learned and decided — session_decide, session_outcome, entity_fact, entity_link — with the evidence and idempotency keys Lakeday expects; the AGENTIC half of ALWAYS-mode learning.",
+    "description": "Record what the agent learned and decided — decisions on the object they are about, outcomes, facts, and links — with the evidence and idempotency keys Lakeday expects; the AGENTIC half of ALWAYS-mode learning.",
     "layer": "workflow",
     "depends_on": [
       "lakeday-knowledge"
@@ -147,7 +147,7 @@
   },
   "lakeday-recall": {
     "name": "lakeday-recall",
-    "description": "Recall prior sessions, decisions, outcomes, and facts about a subject from Lakeday before acting, and load evidence references into working context without the raw data.",
+    "description": "Recall prior decisions, outcomes, facts, and links about a subject by reading that object's own history before acting, and load evidence references into working context without the raw data.",
     "layer": "workflow",
     "depends_on": [
       "lakeday-knowledge",
@@ -181,7 +181,7 @@
   },
   "lakeday-knowledge-dashboard": {
     "name": "lakeday-knowledge-dashboard",
-    "description": "Publish a human-facing view of an investigation — evidence, decision, outcome — by joining lk_knowledge with the source tables in a JSX2UI dashboard.",
+    "description": "Publish a human-facing view of an investigation — evidence, decision, outcome — by reading the subject object's own history and publishing it alongside the source tables in a JSX2UI dashboard.",
     "layer": "use-case",
     "depends_on": [
       "lakeday-dashboard",

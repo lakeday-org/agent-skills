@@ -33,7 +33,7 @@ evidence is in a file, bucket, stream, or existing table.
 
 ### Workflow (the checkout playbook)
 
-1. **Frame**: identify subjects (`service:checkout`, `release:v42`, `dataset:checkout_events`). Ask
+1. **Frame**: identify the subject objects (`service:checkout`, `release:v42`, `dataset:checkout_events`). Ask
    for the source location if not given.
 2. **Recall** (`lakeday-recall`): `entity_decisions("service:checkout")`, outcomes of the most
    relevant one. Note baselines from `entity_facts`.
@@ -52,7 +52,7 @@ evidence is in a file, bucket, stream, or existing table.
 5. **Show** (`lakeday-dashboard`): `ui_catalog` → JSX with a Metric, a BarChart by release, and a
    window filter → `validate_ui` → `create_dashboard checkout-health` → `set_table_policy` +
    `collection_grant` → `inspect_dashboard` (the 8.4% must match step 4) → `render_dashboard`.
-6. **Decide** (`lakeday-record`): `session_decide restore-timeout` with subjects, rationale, the
+6. **Decide** (`lakeday-record`): `entity_decide` on the subject object, record ID `restore-timeout`, with rationale, the
    rejected alternatives (more retries, full rollback), and evidence (dataset@42, prior decision,
    release notes URL).
 7. **Verify**: after the change ships, `stream_load` the new window, `run_pipeline` → snapshot 43,

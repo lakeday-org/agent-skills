@@ -1,6 +1,6 @@
 ---
 name: lakeday-recall
-description: Recall prior sessions, decisions, outcomes, and facts about a subject from Lakeday before acting, and load evidence references into working context without the raw data.
+description: Recall prior decisions, outcomes, facts, and links about a subject by reading that object's own history before acting, and load evidence references into working context without the raw data.
 license: MIT
 ---
 
@@ -8,21 +8,23 @@ license: MIT
 
 ### Source Of Truth
 
-- The `<lakeday-knowledge>` block at the top of the turn is the projection of this session plus
-  prior decisions about the project entity. Start there. Without hooks (or after compaction),
-  call `session_project(tenant_id, id=<session>, project_entity, budget?)` to rebuild the same
-  block server-side.
-- For anything else: `entity_decisions`, `entity_sessions`, `session_outcomes`, `entity_facts`,
-  `entity_relationships`, and SQL over `lk_knowledge`.
-- Projection may lag a mutation by a moment; `entity_sync` / `session_sync` repairs pending
-  publication.
+- The `<lakeday-knowledge>` block at the top of the turn is the projection of this session plus the
+  project object's own facts and decisions. Start there. Without hooks (or after compaction), call
+  `session_project(tenant_id, id=<session>, project_entity, budget?)` to rebuild the same block.
+- For anything else, read the object itself: `entity_decisions`, `entity_outcomes`, `entity_facts`,
+  `entity_links`, `entity_refs`, `entity_history`.
+- There is no shared knowledge table and no publication lag. A read returns the object's own
+  durable history; nothing needs syncing.
 
 ### Default Posture (Tardigrade context model)
 
 - Context is projected from immutable events, not carried in your head. Re-read the block after
   compaction; it is regenerated from Lakeday, not from the transcript.
-- Load references, not payloads. When a prior investigation is relevant, keep its decision ID,
-  outcome sentence, and evidence references in working context; do not paste raw query results.
+- **Recall is a read of the subject.** Decisions are recorded on the object they are about, so
+  "what has been decided about this table?" is that table's own `entity_decisions` — one call, not
+  a search.
+- Load references, not payloads. Keep a decision's record ID, its outcome sentence, and its
+  evidence references in working context; do not paste raw query results.
 - Ask "have we seen this before?" for every incident, regression, and design choice. A matching
   prior decision with an outcome is the strongest evidence you can cite.
 - When you replace raw results with a summary, pin it with `session_context`
@@ -30,43 +32,39 @@ license: MIT
 
 ### Workflow
 
-1. Identify subject entities: the service, dataset, release, pipeline, or file involved.
-2. `entity_decisions(tenant_id, id=<subject>, limit=20)` → prior decisions mentioning it, with
-   session IDs.
-3. For each promising decision: `session_decision(tenant_id, id=<session>, record_id=<decision>)`
-   and `session_outcomes(...)` → what was chosen and what happened.
-4. `entity_facts(tenant_id, id=<subject>)` → baselines and known causes; ignore retracted IDs.
-5. `entity_relationships(tenant_id, id=<subject>)` → dependencies, lineage, dashboards.
-6. `entity_sessions(tenant_id, id=<subject>)` → earlier investigations to skim via
-   `session_history(after, limit)`; read `session_context` first, history only if needed.
-7. Summarize what applies in two or three sentences and cite decision and dataset references.
-8. Pin the summary: `session_context(tenant_id, id=<this session>, data={ summary, references })`.
+1. Identify the subject objects: the service, dataset, release, pipeline, repo, or file involved.
+2. `entity_decisions(tenant_id, id=<subject>, limit=20)` → what was decided about it, by anyone,
+   newest first.
+3. For a promising decision: `entity_decision(tenant_id, id=<subject>, record_id=<decision>)` for
+   the original immutable event, and `entity_outcomes(tenant_id, id=<subject>, record_id=<decision>)`
+   for what actually happened.
+4. `entity_facts(tenant_id, id=<subject>)` → baselines and known causes. The class read returns
+   assertions *and* retractions, newest first; a retracted record ID is no longer active.
+5. `entity_links(tenant_id, id=<subject>)` → dependencies, lineage, owning project, dashboards.
+6. `entity_refs(tenant_id, id=<subject>, object=<other>, kind=<class>)` → this object's own events
+   that name another object, when you want the edge between two specific things.
+7. To find the sessions that touched a subject, read its `entity_links` for `worked_on_in` edges,
+   then `session_context` on each (history only if the context is not enough).
+8. Summarize what applies in two or three sentences and cite record IDs and evidence references.
+9. Pin the summary: `session_context(tenant_id, id=<this session>, data={ actor_id, summary, references })`.
 
-### Standard queries
+### Read orders
 
-```sql
--- Decisions about a subject with outcomes (works across sessions and users you can see)
-SELECT d.session_id, d.decision_id, d.label AS choice, d.timestamp, o.label AS outcome
-FROM lk_knowledge d
-LEFT JOIN lk_knowledge o ON o.type = 'decision.outcome' AND o.row_kind = 'event'
-  AND o.session_id = d.session_id AND o.decision_id = d.decision_id
-WHERE d.type = 'decision.recorded' AND d.row_kind = 'reference'
-  AND d.target_kind = 'entity' AND d.target_id = $1
-ORDER BY d.timestamp DESC LIMIT 20;
+Getting this wrong silently loses recent records, so it is worth stating plainly:
 
--- Sessions that touched a dataset
-SELECT DISTINCT session_id, max(timestamp) AS last_seen
-FROM lk_knowledge WHERE row_kind = 'reference' AND target_kind = 'dataset' AND target_id = $1
-GROUP BY session_id ORDER BY last_seen DESC LIMIT 20;
+- `entity_decisions`, `entity_facts`, `entity_links`, `entity_log` are **newest first** and answer
+  in one page. Widen with `limit` (max 100), not by paging.
+- `entity_history` is **oldest first** and sequence-paged. Follow `next_after` until it is null,
+  and keep paging through empty pages — an empty page is normal and does not mean the end.
 
--- Learnings recorded on the project entity
-SELECT label AS learning, timestamp FROM lk_knowledge
-WHERE type = 'fact.asserted' AND object_id = $1 AND predicate = 'learning'
-ORDER BY timestamp DESC LIMIT 20;
-```
+### Reading the rest of the lake
+
+Knowledge lives in the objects, not in SQL. `query_sql` is for the data: the Lance tables an
+investigation measures. Use `query_describe` to see what you can read, and `lakeday-query` for the
+SQL itself.
 
 ### Related Skills
 
 - `lakeday-knowledge` for what each layer means.
 - `lakeday-record` to write the decision that follows the recall.
-- `lakeday-query` for custom `lk_knowledge` queries.
+- `lakeday-query` for measurements over the managed Lance tables.
